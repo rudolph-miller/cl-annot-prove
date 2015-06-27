@@ -19,8 +19,7 @@
   :license "MIT"
   :homepage "https://github.com/Rudolph-Miller/cl-annot-prove"
   :depends-on (:cl-syntax
-               :cl-syntax-annot
-               )
+               :cl-syntax-annot)
   :components ((:module "src"
                 :components
                 ((:file "cl-annot-prove"))))
