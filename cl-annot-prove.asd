@@ -19,10 +19,13 @@
   :license "MIT"
   :homepage "https://github.com/Rudolph-Miller/cl-annot-prove"
   :depends-on (:cl-syntax
-               :cl-syntax-annot)
+               :cl-syntax-annot
+               :prove)
   :components ((:module "src"
+                :serial t
                 :components
-                ((:file "cl-annot-prove"))))
+                ((:file "struct")
+                 (:file "cl-annot-prove"))))
   :description "Annotation Syntax Test Library."
   :long-description
   #.(with-open-file (stream (merge-pathnames

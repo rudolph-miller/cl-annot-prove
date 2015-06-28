@@ -16,7 +16,8 @@
                :prove)
   :components ((:module "t"
                 :components
-                ((:test-file "cl-annot-prove"))))
+                ((:test-file "struct")
+                 (:test-file "cl-annot-prove"))))
   :description "Test system for cl-annot-prove."
 
   :defsystem-depends-on (:prove-asdf)
