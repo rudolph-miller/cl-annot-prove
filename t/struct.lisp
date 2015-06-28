@@ -7,4 +7,13 @@
 
 (plan nil)
 
+(subtest "test"
+  (skip 1 "Not written yet."))
+
+(subtest "symbol-tests"
+  (skip 1 "Not written yet."))
+
+(subtest "test-document"
+  (skip 1 "Not written yet."))
+
 (finalize)

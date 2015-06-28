@@ -7,4 +7,7 @@
 
 (plan nil)
 
+(subtest "tests"
+  (skip 1 "Not written yet."))
+
 (finalize)

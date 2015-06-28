@@ -7,4 +7,7 @@
 
 (plan nil)
 
+(subtest "query-symbol-tests"
+  (skip 1 "Not written yet."))
+
 (finalize)
