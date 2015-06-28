@@ -23,6 +23,8 @@
                 :test-document-got
                 :test-documest-expected
                 :make-test-document)
+  (:import-from :cl-annot-prove.helper
+                :query-symbol-tests)
   (:export :*symbol-tests-list*
            :query-symbol-tests
            :test-form
@@ -42,37 +44,6 @@
 (in-package :cl-annot-prove)
 
 (syntax:use-syntax :annot)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; query
-
-@doc
-"Return list of #S(SYMBOL-TESTS ...)s which match the conditions."
-(defun query-symbol-tests (&key symbol symbol-name symbol-package (symbol-tests-list *symbol-tests-list*))
-  (labels ((equal-symbol-name (symbol symbol-name)
-             (equal (symbol-name symbol) symbol-name))
-           (equal-symbol-package-name (symbol package-name)
-             (let ((symbol-package (symbol-package symbol)))
-               (or (equal (package-name symbol-package) package-name)
-                   (member package-name (package-nicknames symbol-package) :test #'equal)))))
-    (loop with symbol-package-name = (when symbol-package
-                                       (package-name (if (typep symbol-package 'package)
-                                                         symbol-package
-                                                         (find-package symbol-package))))
-          for tests in symbol-tests-list
-          for tests-symbol = (symbol-tests-symbol tests)
-          when (cond
-                 (symbol
-                  (eql tests-symbol symbol))
-                 ((and symbol-name symbol-package)
-                  (and (equal-symbol-name tests-symbol symbol-name)
-                       (equal-symbol-package-name tests-symbol symbol-package-name)))
-                  (symbol-name
-                   (equal-symbol-name tests-symbol symbol-name))
-                  (symbol-package
-                   (equal-symbol-package-name tests-symbol symbol-package-name))
-                  (t nil))
-                 collecting tests)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; render

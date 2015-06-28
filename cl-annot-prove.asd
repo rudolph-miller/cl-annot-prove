@@ -25,6 +25,7 @@
                 :serial t
                 :components
                 ((:file "struct")
+                 (:file "helper")
                  (:file "cl-annot-prove"))))
   :description "Annotation Syntax Test Library."
   :long-description

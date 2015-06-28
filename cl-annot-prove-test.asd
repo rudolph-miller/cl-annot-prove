@@ -17,6 +17,7 @@
   :components ((:module "t"
                 :components
                 ((:test-file "struct")
+                 (:test-file "helper")
                  (:test-file "cl-annot-prove"))))
   :description "Test system for cl-annot-prove."
 
