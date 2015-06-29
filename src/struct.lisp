@@ -46,16 +46,16 @@
 
 (defun make-symbol-tests (symbol tests &key before after around before-each after-each around-each)
   (check-type tests list)
-  (let* ((tests (when tests
-                  (if (typep (car tests) 'test)
-                      tests
-                      (mapcar #'(lambda (form)
-                                  (make-test :form form
-                                             :before before-each
-                                             :after after-each
-                                             :around around-each))
-                              tests))))
-         (symbol-tests (%make-symbol-tests :symbol symbol :tests tests :before before :after after :around around)))
+  (let ((symbol-tests (%make-symbol-tests :symbol symbol
+                                           :tests (mapcar #'(lambda (form)
+                                                              (make-test :form form
+                                                                         :before before-each
+                                                                         :after after-each
+                                                                         :around around-each))
+                                                          tests)
+                                           :before before
+                                           :after after
+                                           :around around)))
     (setq *symbol-tests-list*
           (cons symbol-tests
                 (remove symbol-tests *symbol-tests-list*
