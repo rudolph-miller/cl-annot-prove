@@ -40,7 +40,6 @@
                   (t nil))
                  collecting tests)))
 
-
 @doc
 "Run symbol-tests."
 (defun run-symbol-tests (symbol-tests)
