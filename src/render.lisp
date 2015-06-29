@@ -91,7 +91,7 @@
                                 :after (symbol-tests-after symbol-tests) :around (symbol-tests-around symbol-tests)))
            (render-test (test)
              (render-method-chain (replace-test-form (test-form test))
-                                :around (render-around test))))
+                                  :around (render-around test))))
     (mapcar #'(lambda (test)
                 (princ-to-string (render-test test)))
             (symbol-tests-tests symbol-tests))))
