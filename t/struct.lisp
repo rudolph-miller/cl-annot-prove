@@ -88,6 +88,17 @@
           "can bind around of test."))))
 
 (subtest "test-document"
-  (skip 1 "Not written yet."))
+  (let ((test-document (make-test-document :got '(is a 1) :expected 1)))
+    (is-type test-document
+             'test-document
+             "can make-test-document.")
+
+    (is (test-document-got test-document)
+        '(is a 1)
+        "can bind got.")
+
+    (is (test-document-expected test-document)
+        1
+        "can bind expected.")))
 
 (finalize)

@@ -15,7 +15,7 @@
                 :symbol-tests-around
                 :test-document
                 :test-document-got
-                :test-documest-expected)
+                :test-document-expected)
   (:import-from :cl-annot-prove.render
                 :render-symbol-tests)
   (:import-from :cl-annot-prove.helper

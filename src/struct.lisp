@@ -17,7 +17,7 @@
            :make-symbol-tests
            :test-document
            :test-document-got
-           :test-documest-expected
+           :test-document-expected
            :make-test-document))
 (in-package :cl-annot-prove.struct)
 
