@@ -26,10 +26,12 @@
                 :tests)
   (:export ;; struct
            :*symbol-tests-list*
+           :test
            :test-form
            :test-before
            :test-after
            :test-around
+           :symbol-tests
            :symbol-tests-symbol
            :symbol-tests-tests
            :symbol-tests-before
