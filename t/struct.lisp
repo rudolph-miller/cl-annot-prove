@@ -99,6 +99,10 @@
 
     (is (test-document-expected test-document)
         1
-        "can bind expected.")))
+        "can bind expected.")
+
+    (is (princ-to-string test-document)
+        (format nil "(IS A 1)~%;; => 1")
+        "can print test-document correctly.")))
 
 (finalize)
