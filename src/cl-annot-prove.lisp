@@ -16,14 +16,16 @@
                 :test-document
                 :test-document-got
                 :test-documest-expected)
-  (:import-from :cl-annot-prove.helper
-                :query-symbol-tests)
   (:import-from :cl-annot-prove.render
                 :render-symbol-tests)
+  (:import-from :cl-annot-prove.helper
+                :query-symbol-tests
+                :run-symbol-tests
+                :run-package-tests)
   (:import-from :cl-annot-prove.annotation
                 :tests)
-  (:export :*symbol-tests-list*
-           :query-symbol-tests
+  (:export ;; struct
+           :*symbol-tests-list*
            :test-form
            :test-before
            :test-after
@@ -36,6 +38,15 @@
            :test-document
            :test-document-got
            :test-document-expected
+
+           ;; render
            :render-symbol-tests
+
+           ;; helper
+           :query-symbol-tests
+           :run-symbol-tests
+           :run-package-tests
+
+           ;; annotation
            :tests))
 

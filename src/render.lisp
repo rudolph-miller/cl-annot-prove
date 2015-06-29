@@ -2,7 +2,14 @@
 (defpackage cl-annot-prove.render
   (:use :cl
         :annot.doc
-        :cl-annot-prove.struct))
+        :cl-annot-prove.struct)
+  (:export :extract-test-expected
+           :extract-test-document
+           :replace-test-form
+           :replace-call-next-method
+           :render-method-chain
+           :render-around
+           :render-symbol-tests))
 (in-package :cl-annot-prove.render)
 
 (syntax:use-syntax :annot)
@@ -82,16 +89,15 @@
         (replace-call-next-method around inner)
         inner)))
 
+(defun render-around (test symbol-tests)
+  (render-method-chain (or (test-around test) '(cl:call-next-method))
+                       :before (symbol-tests-before symbol-tests)
+                       :after (symbol-tests-after symbol-tests) :around (symbol-tests-around symbol-tests)))
+
 @doc
 "Render #S(SYMBOL-TESTS ...) for documents."
 (defun render-symbol-tests (symbol-tests)
-  (labels ((render-around (test)
-           (render-method-chain (or (test-around test) '(cl:call-next-method))
-                                :before (symbol-tests-before symbol-tests)
-                                :after (symbol-tests-after symbol-tests) :around (symbol-tests-around symbol-tests)))
-           (render-test (test)
-             (render-method-chain (replace-test-form (test-form test))
-                                  :around (render-around test))))
-    (mapcar #'(lambda (test)
-                (princ-to-string (render-test test)))
-            (symbol-tests-tests symbol-tests))))
+  (mapcar #'(lambda (test)
+              (princ-to-string (render-method-chain (replace-test-form (test-form test))
+                                                    :around (render-around test symbol-tests))))
+          (symbol-tests-tests symbol-tests)))

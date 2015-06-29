@@ -25,8 +25,8 @@
                 :serial t
                 :components
                 ((:file "struct")
-                 (:file "helper")
                  (:file "render")
+                 (:file "helper")
                  (:file "annotation")
                  (:file "cl-annot-prove"))))
   :description "Annotation Syntax Test Library."

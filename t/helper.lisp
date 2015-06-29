@@ -10,4 +10,10 @@
 (subtest "query-symbol-tests"
   (skip 1 "Not written yet."))
 
+(subtest "run-symbol-tests"
+  (skip 1 "Not written yet."))
+
+(subtest "run-package-tests"
+  (skip 1 "Not written yet."))
+
 (finalize)

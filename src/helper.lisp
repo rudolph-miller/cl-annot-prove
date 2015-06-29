@@ -2,8 +2,12 @@
 (defpackage cl-annot-prove.helper
   (:use :cl
         :annot.doc
-        :cl-annot-prove.struct)
-  (:export :query-symbol-tests))
+        :prove
+        :cl-annot-prove.struct
+        :cl-annot-prove.render)
+  (:export :query-symbol-tests
+           :run-symbol-tests
+           :run-package-tests))
 (in-package :cl-annot-prove.helper)
 
 (syntax:use-syntax :annot)
@@ -35,3 +39,25 @@
                    (equal-symbol-package-name tests-symbol symbol-package-name))
                   (t nil))
                  collecting tests)))
+
+
+@doc
+"Run symbol-tests."
+(defun run-symbol-tests (symbol-tests)
+  (let ((tests (symbol-tests-tests symbol-tests)))
+    (dolist (test tests)
+      (eval
+       (render-method-chain (test-form test)
+                            :around (render-around test symbol-tests))))))
+
+@doc
+"Run symbol-tests in the package."
+(defun run-package-tests (package)
+  (let ((symbol-tests-list (query-symbol-tests :symbol-package package)))
+    (diag (format nil "PACKAGE: ~a" package))
+    (plan (length symbol-tests-list))
+    (dolist (symbol-tests symbol-tests-list)
+      (subtest (format nil "SYMBOL: ~a" (symbol-tests-symbol symbol-tests))
+        (run-symbol-tests symbol-tests)))
+    (finalize)))
+
