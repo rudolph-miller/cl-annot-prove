@@ -7,7 +7,16 @@
 
 (plan nil)
 
-(subtest "tests"
-  (skip 1 "Not written yet."))
+(syntax:use-syntax :annot)
+
+@tests
+((is (add 1 2) 3))
+(defun add (a b)
+  (+ a b))
+
+(subtest "@tests"
+  (is (length (query-symbol-tests :symbol 'add))
+      1
+      "can add tests."))
 
 (finalize)
