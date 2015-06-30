@@ -3,72 +3,16 @@
   (:use :cl
         :annot.doc
         :cl-annot-prove.struct)
-  (:export :extract-test-expected
-           :extract-test-document
-           :replace-test-form
-           :replace-call-next-method
+  (:export :replace-call-next-method
            :render-method-chain
            :render-around
+           :expected-formatter
+           :extract-test-document
+           :replace-test-form
            :render-symbol-tests))
 (in-package :cl-annot-prove.render)
 
 (syntax:use-syntax :annot)
-
-(defgeneric extract-test-expected (operator form)
-  (:method (operator form)
-    (declare (ignore operator form))
-    nil))
-
-(defmacro def-extract-test-expected ((symbol form) &body body)
-  (let ((operator (gensym "operator")))
-    `(defmethod extract-test-expected ((,operator (eql ',symbol)) ,form)
-       (declare (ignore ,operator))
-       ,@body)))
-
-(def-extract-test-expected (prove:ok form)
-  "T")
-
-(def-extract-test-expected (prove:is form)
-  (format nil "~s" (caddr form)))
-
-(def-extract-test-expected (prove:isnt form)
-  (format nil "~s" (caddr form)))
-
-(def-extract-test-expected (prove:is-values form)
-  (format nil "(VALUES ~{~s~^ ~})" (caddr form)))
-
-(def-extract-test-expected (prove:is-print form)
-  (format nil "PRINT ~a" (caddr form)))
-
-(def-extract-test-expected (prove:is-error form)
-  (format nil "RAISE ~a" (caddr form)))
-
-(def-extract-test-expected (prove:is-type form)
-  (format nil "TYPE: ~a" (caddr form)))
-
-(def-extract-test-expected (prove:like form)
-  (format nil "LIKE: ~s" (caddr form)))
-
-(def-extract-test-expected (prove:is-expand form)
-  (format nil "EXPANDED TO: ~s" (caddr form)))
-
-(defun extract-test-document (form)
-  (when (listp form)
-    (let ((expected (extract-test-expected (car form) form)))
-      (when expected
-    (make-test-document :got (cadr form)
-                        :expected expected)))))
-
-(defun replace-test-form (test-form)
-  (or (extract-test-document test-form)
-      (if (listp test-form)
-          (mapcar #'(lambda (item)
-                      (let ((result (replace-test-form item)))
-                        (if (typep result 'test-document)
-                            result
-                            item)))
-                  test-form)
-          test-form)))
 
 (defun replace-call-next-method (form new)
   (if (listp form)
@@ -78,7 +22,7 @@
                       (replace-call-next-method item new))
                   form))
       form))
-  
+
 (defun render-method-chain (main &key before after around)
   (let ((inner (if (or before after)
                    `(progn ,@(when before (list before))
@@ -92,12 +36,88 @@
 (defun render-around (test symbol-tests)
   (render-method-chain (or (test-around test) '(cl:call-next-method))
                        :before (symbol-tests-before symbol-tests)
-                       :after (symbol-tests-after symbol-tests) :around (symbol-tests-around symbol-tests)))
+                       :after (symbol-tests-after symbol-tests)
+                       :around (symbol-tests-around symbol-tests)))
+
+(defgeneric expected-formatter (operator)
+  (:method (operator)
+    (declare (ignore operator))
+    nil))
+
+(defmacro def-expected-formatter ((symbol expected) &body body)
+  (let ((operator (gensym "operator")))
+    `(defmethod expected-formatter ((,operator (eql ',symbol)))
+       (declare (ignore ,operator))
+       (lambda (,expected)
+         ,@body))))
+
+(def-expected-formatter (prove:ok expected)
+  (declare (ignore expected))
+  "T")
+
+(def-expected-formatter (prove:is expected)
+  (format nil "~s" expected))
+
+(def-expected-formatter (prove:isnt expected)
+  (format nil "~s" expected))
+
+(def-expected-formatter (prove:is-values expected)
+  (format nil "(VALUES ~{~s~^ ~})" expected))
+
+(def-expected-formatter (prove:is-print expected)
+  (format nil "PRINT ~a" expected))
+
+(def-expected-formatter (prove:is-error expected)
+  (format nil "RAISE ~a" expected))
+
+(def-expected-formatter (prove:is-type expected)
+  (format nil "TYPE: ~a" expected))
+
+(def-expected-formatter (prove:like expected)
+  (format nil "LIKE: ~a" expected))
+
+(def-expected-formatter (prove:is-expand expected)
+  (format nil "EXPANDED TO: ~s" expected))
+
+(defun get-inner-value (inner around)
+  (let* ((*standard-output* (make-broadcast-stream))
+         (result (gensym "result"))
+         (result-inner `(setq ,result ,inner))
+         (result-around `(let (,result) (call-next-method) ,result)))
+    (handler-bind ((warning (lambda (c)
+                                    (declare (ignore c))
+                                    (muffle-warning))))
+      (eval
+       (render-method-chain (render-method-chain result-inner :around around)
+                            :around result-around)))))
+
+(defun extract-test-document (form around)
+  (when (listp form)
+    (let* ((formatter (expected-formatter (car form))))
+      (when formatter
+        (let ((expected (funcall formatter (get-inner-value (caddr form) around))))
+          (make-test-document :got (cadr form)
+                              :expected expected))))))
+
+(defun replace-test-form (test-form around)
+  (or (extract-test-document test-form around)
+      (if (listp test-form)
+          (mapcar #'(lambda (item)
+                      (let ((result (replace-test-form item around)))
+                        (if (typep result 'test-document)
+                            result
+                            item)))
+                  test-form)
+          test-form)))
 
 @doc
 "Render #S(SYMBOL-TESTS ...) for documents."
 (defun render-symbol-tests (symbol-tests)
   (mapcar #'(lambda (test)
-              (princ-to-string (render-method-chain (replace-test-form (test-form test))
-                                                    :around (render-around test symbol-tests))))
+              (let ((around (render-around test symbol-tests)))
+                (format nil "~s"
+                        (render-method-chain (replace-test-form (test-form test) around)
+                                             :before (test-before test)
+                                             :after (test-after test)
+                                             :around around))))
           (symbol-tests-tests symbol-tests)))
