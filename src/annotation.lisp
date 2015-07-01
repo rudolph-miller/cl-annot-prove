@@ -3,28 +3,35 @@
   (:use :cl
         :annot.util
         :annot.helper
-        :cl-annot-prove.struct)
-  (:export :tests))
+        :cl-annot-prove.struct
+        :cl-annot-prove.helper)
+  (:export :tests
+           :tests.before
+           :tests.after
+           :tests.around
+           :tests.before.each
+           :tests.after.each
+           :tests.around.each))
 (in-package :cl-annot-prove.annotation)
 
-(defannotation tests (test-forms definition-form)
-    (:arity 2)
-  (progn-form-replace-last
-   (lambda (definition-form)
-     (case (definition-form-type definition-form)
-       ((defun defmacro)
-        (let ((symbol (cadr definition-form)))
-          (make-symbol-tests symbol test-forms))
-        definition-form)
-       (otherwise (error "Test not supported: ~a" definition-form))))
-   definition-form))
+(defmacro deftests-annotation (name accessor)
+  (let ((definition-form (gensym "definition-form"))
+        (form (gensym "form"))
+        (symbol (gensym "symbol"))
+        (symbol-tests (gensym "symbol-tests")))
+    `(defannotation ,name (,form ,definition-form)
+         (:arity 2)
+       (let* ((,symbol (cadr ,definition-form))
+              (,symbol-tests (or (car (query-symbol-tests :symbol ,symbol))
+                                (make-symbol-tests ,symbol))))
+         (setf (,accessor ,symbol-tests) ,form)
+         (add-symbol-tests ,symbol-tests)
+         ,definition-form))))
 
-#|
-Tasks:
-- tests.before
-- tests.after
-- tests.around
-- tests.before-each
-- tests.after-each
-- tests.around-each
-|#
+(deftests-annotation tests symbol-tests-tests)
+(deftests-annotation tests.before symbol-tests-before)
+(deftests-annotation tests.after symbol-tests-after)
+(deftests-annotation tests.around symbol-tests-around)
+(deftests-annotation tests.before.each symbol-tests-before-each)
+(deftests-annotation tests.after.each symbol-tests-after-each)
+(deftests-annotation tests.around.each symbol-tests-around-each)

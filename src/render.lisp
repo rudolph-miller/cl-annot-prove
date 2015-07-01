@@ -33,8 +33,8 @@
         (replace-call-next-method around inner)
         inner)))
 
-(defun render-around (test symbol-tests)
-  (render-method-chain (or (test-around test) '(cl:call-next-method))
+(defun render-around (symbol-tests)
+  (render-method-chain (or (symbol-tests-around-each symbol-tests) '(cl:call-next-method))
                        :before (symbol-tests-before symbol-tests)
                        :after (symbol-tests-after symbol-tests)
                        :around (symbol-tests-around symbol-tests)))
@@ -114,10 +114,10 @@
 "Render #S(SYMBOL-TESTS ...) for documents."
 (defun render-symbol-tests (symbol-tests)
   (mapcar #'(lambda (test)
-              (let ((around (render-around test symbol-tests)))
+              (let ((around (render-around symbol-tests)))
                 (format nil "~s"
-                        (render-method-chain (replace-test-form (test-form test) around)
-                                             :before (test-before test)
-                                             :after (test-after test)
+                        (render-method-chain (replace-test-form test around)
+                                             :before (symbol-tests-before-each symbol-tests)
+                                             :after (symbol-tests-after-each symbol-tests)
                                              :around around))))
           (symbol-tests-tests symbol-tests)))

@@ -57,10 +57,11 @@
 
 
 (subtest "render-around"
-  (let ((symbol-tests (make-symbol-tests 'add '((= (add a b) c))
+  (let ((symbol-tests (make-symbol-tests 'add
+                                         :tests '((= (add a b) c))
                                          :around '(let ((c 3)) (call-next-method))
                                          :around-each '(let ((a 1) (b 2)) (call-next-method)))))
-    (is (render-around (car (symbol-tests-tests symbol-tests)) symbol-tests)
+    (is (render-around symbol-tests)
         '(let ((c 3))
           (let ((a 1)
                 (b 2))
@@ -108,7 +109,8 @@
       :test #'equal))
 
 (subtest "render-symbol-tests"
-  (is (render-symbol-tests (make-symbol-tests 'add '((let ((a 1)) (is (add a b) c)))
+  (is (render-symbol-tests (make-symbol-tests 'add
+                                              :tests '((let ((a 1)) (is (add a b) c)))
                                               :before '(print "before")
                                               :after '(print "after")
                                               :around '(let ((c 3)) (call-next-method))

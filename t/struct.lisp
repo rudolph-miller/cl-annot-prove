@@ -4,41 +4,16 @@
         :cl-annot-prove
         :prove)
   (:import-from :cl-annot-prove.struct
-                :make-test
                 :make-symbol-tests
+                :add-symbol-tests
                 :make-test-document))
 (in-package :cl-annot-prove-test.struct)
 
 (plan nil)
 
-(subtest "test"
-  (let ((test (make-test :form '(is a 1)
-                         :before '(print "before")
-                         :after '(print "after")
-                         :around '(let ((a 1)) (call-next-method))))
-        (*default-test-function* #'equal))
-    (is-type test
-             'test
-             "can make-test.")
-
-    (is (test-form test)
-        '(is a 1)
-        "can bind form.")
-
-    (is (test-before test)
-        '(print "before")
-        "can bind before.")
-
-    (is (test-after test)
-        '(print "after")
-        "can bind after.")
-
-    (is (test-around test)
-        '(let ((a 1)) (call-next-method))
-        "can bind around.")))
-
 (subtest "symbol-tests"
-  (let ((symbol-tests (make-symbol-tests 'sample '((is a b))
+  (let ((symbol-tests (make-symbol-tests 'sample
+                                         :tests '((is a b))
                                          :before '(print "before")
                                          :after '(print "after")
                                          :around '(let ((a 1)) (call-next-method))
@@ -66,26 +41,35 @@
         '(let ((a 1)) (call-next-method))
         "can bind around.")
 
-    (let ((test (car (symbol-tests-tests symbol-tests))))
-      (is-type test
-               'test
-               "can bind tests.")
+    (is (car (symbol-tests-tests symbol-tests))
+        '(is a b)
+        "can bind tests.")
 
-      (is (test-form test)
-          '(is a b)
-          "can bind form of test.")
+    (is (symbol-tests-before-each symbol-tests)
+        '(print "before-each")
+        "can bind before-each.")
 
-      (is (test-before test)
-          '(print "before-each")
-          "can bind before of test.")
+    (is (symbol-tests-after-each symbol-tests)
+        '(print "after-each")
+        "can bind after-each.")
 
-      (is (test-after test)
-          '(print "after-each")
-          "can bind after of test.")
+    (is (symbol-tests-around-each symbol-tests)
+        '(let ((b 1)) (call-next-method))
+        "can bind around-each.")))
 
-      (is (test-around test)
-          '(let ((b 1)) (call-next-method))
-          "can bind around of test."))))
+(subtest "add-symbol-tests"
+  (let* ((symbol (gensym))
+         (symbol-tests (make-symbol-tests symbol
+                                          :tests '((is 1 1)))))
+    (is (query-symbol-tests :symbol symbol)
+        nil
+        "At first, symbol-tests is not yet registered.")
+
+    (add-symbol-tests symbol-tests)
+
+    (is (length (query-symbol-tests :symbol symbol))
+        1
+        "can register symbol-tests.")))
 
 (subtest "test-document"
   (let ((test-document (make-test-document :got '(is a 1) :expected 1)))

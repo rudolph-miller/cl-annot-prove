@@ -19,8 +19,9 @@
              (equal (symbol-name symbol) symbol-name))
            (equal-symbol-package-name (symbol package-name)
              (let ((symbol-package (symbol-package symbol)))
-               (or (equal (package-name symbol-package) package-name)
-                   (member package-name (package-nicknames symbol-package) :test #'equal)))))
+               (when symbol-package
+                 (or (equal (package-name symbol-package) package-name)
+                     (member package-name (package-nicknames symbol-package) :test #'equal))))))
     (loop with symbol-package-name = (when symbol-package
                                        (package-name (if (typep symbol-package 'package)
                                                          symbol-package
@@ -33,12 +34,12 @@
                  ((and symbol-name symbol-package)
                   (and (equal-symbol-name tests-symbol symbol-name)
                        (equal-symbol-package-name tests-symbol symbol-package-name)))
-                  (symbol-name
-                   (equal-symbol-name tests-symbol symbol-name))
-                  (symbol-package
-                   (equal-symbol-package-name tests-symbol symbol-package-name))
-                  (t nil))
-                 collecting tests)))
+                 (symbol-name
+                  (equal-symbol-name tests-symbol symbol-name))
+                 (symbol-package
+                  (equal-symbol-package-name tests-symbol symbol-package-name))
+                 (t nil))
+            collecting tests)))
 
 @doc
 "Run symbol-tests."
@@ -46,8 +47,8 @@
   (let ((tests (symbol-tests-tests symbol-tests)))
     (dolist (test tests)
       (eval
-       (render-method-chain (test-form test)
-                            :around (render-around test symbol-tests))))))
+       (render-method-chain test
+                            :around (render-around symbol-tests))))))
 
 @doc
 "Run symbol-tests in the package."

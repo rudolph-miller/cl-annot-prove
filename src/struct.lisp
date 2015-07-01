@@ -3,18 +3,17 @@
   (:use :cl
         :annot.doc)
   (:export :*symbol-tests-list*
-           :test
-           :test-form
-           :test-before
-           :test-after
-           :test-around
            :symbol-tests
            :symbol-tests-symbol
            :symbol-tests-tests
            :symbol-tests-before
            :symbol-tests-after
            :symbol-tests-around
+           :symbol-tests-before-each
+           :symbol-tests-after-each
+           :symbol-tests-around-each
            :make-symbol-tests
+           :add-symbol-tests
            :test-document
            :test-document-got
            :test-document-expected
@@ -28,41 +27,24 @@
 (defvar *symbol-tests-list* nil)
 
 @doc
-"Structure of test."
-(defstruct test
-  (form)
-  (before)
-  (after)
-  (around))
-
-@doc
 "Structure of tests for symbol."
-(defstruct (symbol-tests (:constructor %make-symbol-tests))
+(defstruct (symbol-tests (:constructor make-symbol-tests (symbol &key tests before after around before-each after-each around-each)))
   (symbol)
   (tests)
   (before)
   (after)
-  (around))
+  (around)
+  (before-each)
+  (after-each)
+  (around-each))
 
-(defun make-symbol-tests (symbol tests &key before after around before-each after-each around-each)
-  (check-type tests list)
-  (let ((symbol-tests (%make-symbol-tests :symbol symbol
-                                           :tests (mapcar #'(lambda (form)
-                                                              (make-test :form form
-                                                                         :before before-each
-                                                                         :after after-each
-                                                                         :around around-each))
-                                                          tests)
-                                           :before before
-                                           :after after
-                                           :around around)))
-    (setq *symbol-tests-list*
-          (cons symbol-tests
-                (remove symbol-tests *symbol-tests-list*
-                        :test #'(lambda (obj1 obj2)
-                                  (eql (symbol-tests-symbol obj1)
-                                       (symbol-tests-symbol obj2))))))
-    symbol-tests))
+(defun add-symbol-tests (symbol-tests)
+  (setq *symbol-tests-list*
+        (cons symbol-tests
+              (remove symbol-tests *symbol-tests-list*
+                      :test #'(lambda (obj1 obj2)
+                                (eql (symbol-tests-symbol obj1)
+                                     (symbol-tests-symbol obj2)))))))
 
 (defstruct test-document
   (got)
