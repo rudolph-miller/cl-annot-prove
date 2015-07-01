@@ -20,7 +20,8 @@
   :homepage "https://github.com/Rudolph-Miller/cl-annot-prove"
   :depends-on (:cl-syntax
                :cl-syntax-annot
-               :prove)
+               :prove
+               :trivial-types)
   :components ((:module "src"
                 :serial t
                 :components

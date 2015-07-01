@@ -29,8 +29,8 @@
 @doc
 "Structure of tests for symbol."
 (defstruct (symbol-tests (:constructor make-symbol-tests (symbol &key tests before after around before-each after-each around-each)))
-  (symbol)
-  (tests)
+  (symbol nil :type symbol)
+  (tests nil :type list)
   (before)
   (after)
   (around)

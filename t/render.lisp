@@ -8,7 +8,7 @@
                 :render-method-chain
                 :render-around
                 :expected-formatter
-                :extract-test-document
+                :replace-test-with-setq-form
                 :replace-test-form
                 :render-symbol-tests)
   (:import-from :cl-annot-prove.struct
@@ -93,19 +93,32 @@
 
     (expected-formatter-test is-expand '(print "Sample") "EXPANDED TO: (PRINT \"Sample\")")))
 
-(subtest "extract-test-document"
-  (is (extract-test-document '(is 1 a) '(let ((a 1)) (call-next-method)))
-      (make-test-document :got 1
-                          :expected "1")
-      "can extract test-document."
-      :test #'equalp))
+(subtest "replace-test-with-setq-form"
+  (multiple-value-bind (replaced-form results) (replace-test-with-setq-form '(let ((a 1)) (is a b)))
+    (let ((result-symbol (caar results)))
+      (is replaced-form
+          `(let ((a 1)) (setq ,result-symbol b))
+          "can return replaced form and can store symbols in results.")
+
+      (let ((result (cdr (car results))))
+        (is (getf result :got)
+            'a
+            "can store :got.")
+
+        (is (getf result :setq)
+            `(setq ,result-symbol b)
+            "can store :setq.")
+
+        (is-type (getf result :formatter)
+                 'function
+                 "can store :formatter.")))))
 
 (subtest "replace-test-form"
   (is (princ-to-string (replace-test-form '(let ((a 1)) (is a b)) '(let ((b 1)) (call-next-method))))
       "(LET ((A 1))
   A
 ;; => 1)"
-      "can extract test-document."
+      "can replace."
       :test #'equal))
 
 (subtest "render-symbol-tests"

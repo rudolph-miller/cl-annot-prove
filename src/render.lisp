@@ -3,11 +3,13 @@
   (:use :cl
         :annot.doc
         :cl-annot-prove.struct)
+  (:import-from :trivial-types
+                :proper-list-p)
   (:export :replace-call-next-method
            :render-method-chain
            :render-around
            :expected-formatter
-           :extract-test-document
+           :replace-test-with-setq-form
            :replace-test-form
            :render-symbol-tests))
 (in-package :cl-annot-prove.render)
@@ -79,36 +81,56 @@
 (def-expected-formatter (prove:is-expand expected)
   (format nil "EXPANDED TO: ~s" expected))
 
-(defun get-inner-value (inner around)
-  (let* ((*standard-output* (make-broadcast-stream))
-         (result (gensym "result"))
-         (result-inner `(setq ,result ,inner))
-         (result-around `(let (,result) (call-next-method) ,result)))
+(defun eval-silently (form)
+  (let ((*standard-output* (make-broadcast-stream)))
     (handler-bind ((warning (lambda (c)
-                                    (declare (ignore c))
-                                    (muffle-warning))))
-      (eval
-       (render-method-chain (render-method-chain result-inner :around around)
-                            :around result-around)))))
+                              (declare (ignore c))
+                              (muffle-warning))))
+      (eval form))))
 
-(defun extract-test-document (form around)
-  (when (listp form)
-    (let* ((formatter (expected-formatter (car form))))
-      (when formatter
-        (let ((expected (funcall formatter (get-inner-value (caddr form) around))))
-          (make-test-document :got (cadr form)
-                              :expected expected))))))
+(defun replace-test-with-setq-form (form)
+  (let (results)
+    (labels ((set-result (form formatter)
+               (let* ((result (gensym "result"))
+                      (setq-form `(setq ,result ,(caddr form))))
+                   (push (cons result (list :got (cadr form) :setq setq-form :formatter formatter)) results)
+                 setq-form))
+             (sub (form)
+               (if (proper-list-p form)
+                   (let* ((op (car form))
+                          (formatter (expected-formatter op)))
+                     (if formatter
+                         (set-result form formatter)
+                         (mapcar #'(lambda (item)
+                                     (sub item))
+                                 form)))
+                   form)))
+      (values (sub form) results))))
 
 (defun replace-test-form (test-form around)
-  (or (extract-test-document test-form around)
-      (if (listp test-form)
-          (mapcar #'(lambda (item)
-                      (let ((result (replace-test-form item around)))
-                        (if (typep result 'test-document)
-                            result
-                            item)))
-                  test-form)
-          test-form)))
+  (multiple-value-bind (replaced-form results) (replace-test-with-setq-form test-form)
+    (let* ((result-symbols (mapcar #'car results))
+             (result-setq-forms (mapcar #'(lambda (item) (getf (cdr item) :setq)) results))
+             (result-around `(let (,@result-symbols) (call-next-method) (list ,@result-symbols)))
+             (result-values (eval-silently
+                             (render-method-chain replaced-form
+                                                  :around (if around
+                                                              (render-method-chain around
+                                                                                   :around result-around)
+                                                              result-around)))))
+        (loop for i from 0
+              for setq-form in result-setq-forms
+              for result = (cdr (elt results i))
+              for result-value = (elt result-values i)
+              for got = (getf result :got)
+              for formatter = (getf result :formatter)
+              for expected = (funcall formatter result-value)
+              do (setq replaced-form
+                       (subst (make-test-document :got got
+                                                  :expected expected)
+                              setq-form
+                              replaced-form)))
+        replaced-form)))
 
 @doc
 "Render #S(SYMBOL-TESTS ...) for documents."
