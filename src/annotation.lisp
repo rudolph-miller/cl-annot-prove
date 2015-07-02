@@ -21,7 +21,7 @@
         (symbol-tests (gensym "symbol-tests")))
     `(defannotation ,name (,form ,definition-form)
          (:arity 2)
-       (let* ((,symbol (cadr ,definition-form))
+       (let* ((,symbol (definition-form-symbol ,definition-form))
               (,symbol-tests (or (car (query-symbol-tests :symbol ,symbol))
                                 (make-symbol-tests ,symbol))))
          (setf (,accessor ,symbol-tests) ,form)

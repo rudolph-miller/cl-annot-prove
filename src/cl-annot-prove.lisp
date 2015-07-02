@@ -1,5 +1,7 @@
 (in-package :cl-user)
-(defpackage cl-annot-prove
+(uiop:define-package cl-annot-prove
+  (:nicknames :annot.prove)
+  (:use-reexport :prove)
   (:import-from :cl-annot-prove.struct
                 :*symbol-tests-list*
                 :symbol-tests

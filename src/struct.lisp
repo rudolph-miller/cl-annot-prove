@@ -45,11 +45,11 @@
 
 (defun add-symbol-tests (symbol-tests)
   (setq *symbol-tests-list*
-        (cons symbol-tests
-              (remove symbol-tests *symbol-tests-list*
+        (append (remove symbol-tests *symbol-tests-list*
                       :test #'(lambda (obj1 obj2)
                                 (eql (symbol-tests-symbol obj1)
-                                     (symbol-tests-symbol obj2)))))))
+                                     (symbol-tests-symbol obj2))))
+                (list symbol-tests))))
 
 (defstruct test-document
   (got)

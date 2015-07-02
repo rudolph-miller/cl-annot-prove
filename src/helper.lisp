@@ -56,7 +56,7 @@
 (defun run-symbol-tests-list (symbol-tests-list)
   (plan (length symbol-tests-list))
   (dolist (symbol-tests symbol-tests-list)
-    (subtest (format nil "SYMBOL: ~a" (symbol-tests-symbol symbol-tests))
+    (subtest (symbol-name (symbol-tests-symbol symbol-tests))
       (run-symbol-tests symbol-tests)))
   (finalize))
 
@@ -64,16 +64,25 @@
 "Run symbol-tests in the package."
 (defun run-package-tests (package)
   (let ((symbol-tests-list (query-symbol-tests :symbol-package package)))
-    (diag (format nil "PACKAGE: ~a" package))
+    (diag (format nil "PACKAGE: ~a" (if (typep package 'package)
+                                        (package-name package)
+                                        package)))
     (run-symbol-tests-list symbol-tests-list)))
+
+(defun load-system-silestly (system-designator)
+  (let ((system (if (typep system-designator 'asdf:system)
+                    (asdf:component-name system-designator)
+                    system-designator)))
+    #+quicklisp (ql:quickload system :silent t)
+   (handler-bind ((warning (lambda (c)
+                             (declare (ignore c))
+                             (muffle-warning))))
+      (asdf:load-system system :force t))))
 
 @doc
 "Run symbol-tests in the system."
 (defun run-system-tests (system-designator)
-  #+quicklisp (ql:quickload (if (typep system-designator 'asdf:system)
-                                (asdf:component-name system-designator)
-                                system-designator))
-  #-quicklisp (asdf:load-system system-designator)
+  (load-system-silestly system-designator)
   (let* ((source-directory (asdf:system-source-directory system-designator))
          (source-files)
          (should-test-packages))
