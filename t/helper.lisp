@@ -7,7 +7,6 @@
 
 (plan nil)
 
-
 (tests ((is (add 1 2) 3)
         (is (add 2 3) 5))
        (defun add (a b)
@@ -53,14 +52,36 @@
         (run-symbol-tests (car (query-symbol-tests :symbol 'add))))
       "can run symbol-tests-tests."))
 
+(defmacro with-silent (form)
+  `(let (result)
+     (let ((*standard-output* (make-broadcast-stream)))
+       (setq result ,form))
+     result))
+
 (subtest "run-package-tests"
   (ok (with-output-to-string (*standard-output*)
         (run-package-tests *package*))
-      "can run package tests."))
+      "can run package tests.")
+
+  (ok (with-silent (run-package-tests *package*))
+      "can return T.")
+
+  (skip 1 "can return NIL."))
+
+(subtest "system-symbol-tests-list"
+  (let ((symbol-tests-list (system-symbol-tests-list :cl-annot-prove :reload-system nil)))
+    (ok (> (length symbol-tests-list) 0)
+        "can return list of symbol-tests.")))
 
 (subtest "run-system-tests"
   (ok (with-output-to-string (*standard-output*)
-        (run-system-tests :cl-annot-prove))
-      "can run system tests."))
+        (run-system-tests :cl-annot-prove :reload-system nil))
+      "can run system tests.")
+
+  (ok (with-silent (run-system-tests :cl-annot-prove :reload-system nil))
+      "can return T.")
+
+  (skip 1 "can return NIL."))
 
 (finalize)
+

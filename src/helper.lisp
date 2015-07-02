@@ -7,9 +7,12 @@
         :cl-annot-prove.render)
   (:import-from :cl-fad
                 :walk-directory)
+  (:import-from :prove.asdf
+                :*last-suite-report*)
   (:export :query-symbol-tests
            :run-symbol-tests
            :run-package-tests
+           :system-symbol-tests-list
            :run-system-tests))
 (in-package :cl-annot-prove.helper)
 
@@ -63,36 +66,47 @@
 @doc
 "Run symbol-tests in the package."
 (defun run-package-tests (package)
-  (let ((symbol-tests-list (query-symbol-tests :symbol-package package)))
+  (let ((symbol-tests-list (query-symbol-tests :symbol-package package))
+        (*last-suite-report* nil))
     (diag (format nil "PACKAGE: ~a" (if (typep package 'package)
                                         (package-name package)
                                         package)))
-    (run-symbol-tests-list symbol-tests-list)))
+    (run-symbol-tests-list symbol-tests-list)
+    (unless *last-suite-report*
+      (warn "Test completed without 'finalize'd."))
+    (= (getf *last-suite-report* :failed) 0)))
 
 (defun load-system-silestly (system-designator)
   (let ((system (if (typep system-designator 'asdf:system)
                     (asdf:component-name system-designator)
                     system-designator)))
     #+quicklisp (ql:quickload system :silent t)
-   (handler-bind ((warning (lambda (c)
-                             (declare (ignore c))
-                             (muffle-warning))))
+    (handler-bind ((warning (lambda (c)
+                              (declare (ignore c))
+                              (muffle-warning))))
       (asdf:load-system system :force t))))
 
 @doc
-"Run symbol-tests in the system."
-(defun run-system-tests (system-designator)
-  (load-system-silestly system-designator)
+"Return list of #S(SYMBOL-TESTS ...)s in the system."
+(defun system-symbol-tests-list (system-designator &key (reload-system t))
+  (when reload-system
+    (load-system-silestly system-designator))
   (let* ((source-directory (asdf:system-source-directory system-designator))
-         (source-files)
-         (should-test-packages))
+         (source-files))
+    (walk-directory source-directory #'(lambda (pathname) (push pathname source-files)))
+    (loop for symbol-tests in *symbol-tests-list*
+          when (member (symbol-tests-load-pathname symbol-tests) source-files :test #'equal)
+            collecting symbol-tests)))
+
+@doc
+"Run symbol-tests in the system."
+(defun run-system-tests (system-designator &key (reload-system t))
+  (let* ((should-test-packages))
     (flet ((add-should-test-package (package)
              (unless (member package should-test-packages :test #'equal)
                (push package should-test-packages))))
-      (walk-directory source-directory #'(lambda (pathname) (push pathname source-files)))
-      (dolist (symbol-tests *symbol-tests-list*)
-        (when (member (symbol-tests-load-pathname symbol-tests) source-files :test #'equal)
-          (add-should-test-package (symbol-package (symbol-tests-symbol symbol-tests)))))
-      (dolist (package should-test-packages)
-        (run-package-tests package)))))
+      (dolist (symbol-tests (system-symbol-tests-list system-designator :reload-system reload-system))
+        (add-should-test-package (symbol-package (symbol-tests-symbol symbol-tests))))
+      (loop for package in should-test-packages
+            always (run-package-tests package)))))
 

@@ -23,6 +23,7 @@
                 :query-symbol-tests
                 :run-symbol-tests
                 :run-package-tests
+                :system-symbol-tests-list
                 :run-system-tests)
   (:import-from :cl-annot-prove.annotation
                 :tests
@@ -60,6 +61,7 @@
            :query-symbol-tests
            :run-symbol-tests
            :run-package-tests
+           :system-symbol-tests-list
            :run-system-tests
 
            ;; annotation
