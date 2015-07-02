@@ -8,6 +8,17 @@
 ;; Have to load systems: cl-syntax and cl-syntax-annot.
 (syntax:use-syntax :annot)
 
+@tests
+((is (add 1 2) 3))
+(defun add (a b)
+  (+ a b))
+
+(render-symbol-tests (car (query-symbol-tests :symbol-name "ADD")))
+#|
+"(ADD 1 2)
+;; => 3"
+|#
+
 @tests.before
 (print "Before tests.")
 @tests.after
