@@ -11,6 +11,7 @@
                 :symbol-tests-before-each
                 :symbol-tests-after-each
                 :symbol-tests-around-each
+                :symbol-tests-load-pathname
                 :test-document
                 :test-document-got
                 :test-document-expected)
@@ -19,7 +20,8 @@
   (:import-from :cl-annot-prove.helper
                 :query-symbol-tests
                 :run-symbol-tests
-                :run-package-tests)
+                :run-package-tests
+                :run-system-tests)
   (:import-from :cl-annot-prove.annotation
                 :tests
                 :tests.before
@@ -44,6 +46,7 @@
            :symbol-tests-before-each
            :symbol-tests-after-each
            :symbol-tests-around-each
+           :symbol-tests-load-pathname
            :test-document
            :test-document-got
            :test-document-expected
@@ -55,6 +58,7 @@
            :query-symbol-tests
            :run-symbol-tests
            :run-package-tests
+           :run-system-tests
 
            ;; annotation
            :tests

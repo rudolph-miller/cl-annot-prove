@@ -58,4 +58,9 @@
         (run-package-tests *package*))
       "can run package tests."))
 
+(subtest "run-system-tests"
+  (ok (with-output-to-string (*standard-output*)
+        (run-system-tests :cl-annot-prove))
+      "can run system tests."))
+
 (finalize)

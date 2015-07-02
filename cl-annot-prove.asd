@@ -21,7 +21,8 @@
   :depends-on (:cl-syntax
                :cl-syntax-annot
                :prove
-               :trivial-types)
+               :trivial-types
+               :cl-fad)
   :components ((:module "src"
                 :serial t
                 :components

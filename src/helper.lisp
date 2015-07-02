@@ -5,9 +5,12 @@
         :prove
         :cl-annot-prove.struct
         :cl-annot-prove.render)
+  (:import-from :cl-fad
+                :walk-directory)
   (:export :query-symbol-tests
            :run-symbol-tests
-           :run-package-tests))
+           :run-package-tests
+           :run-system-tests))
 (in-package :cl-annot-prove.helper)
 
 (syntax:use-syntax :annot)
@@ -50,14 +53,37 @@
        (render-method-chain test
                             :around (render-around symbol-tests))))))
 
+(defun run-symbol-tests-list (symbol-tests-list)
+  (plan (length symbol-tests-list))
+  (dolist (symbol-tests symbol-tests-list)
+    (subtest (format nil "SYMBOL: ~a" (symbol-tests-symbol symbol-tests))
+      (run-symbol-tests symbol-tests)))
+  (finalize))
+
 @doc
 "Run symbol-tests in the package."
 (defun run-package-tests (package)
   (let ((symbol-tests-list (query-symbol-tests :symbol-package package)))
     (diag (format nil "PACKAGE: ~a" package))
-    (plan (length symbol-tests-list))
-    (dolist (symbol-tests symbol-tests-list)
-      (subtest (format nil "SYMBOL: ~a" (symbol-tests-symbol symbol-tests))
-        (run-symbol-tests symbol-tests)))
-    (finalize)))
+    (run-symbol-tests-list symbol-tests-list)))
+
+@doc
+"Run symbol-tests in the system."
+(defun run-system-tests (system-designator)
+  #+quicklisp (ql:quickload (if (typep system-designator 'asdf:system)
+                                (asdf:component-name system-designator)
+                                system-designator))
+  #-quicklisp (asdf:load-system system-designator)
+  (let* ((source-directory (asdf:system-source-directory system-designator))
+         (source-files)
+         (should-test-packages))
+    (flet ((add-should-test-package (package)
+             (unless (member package should-test-packages :test #'equal)
+               (push package should-test-packages))))
+      (walk-directory source-directory #'(lambda (pathname) (push pathname source-files)))
+      (dolist (symbol-tests *symbol-tests-list*)
+        (when (member (symbol-tests-load-pathname symbol-tests) source-files :test #'equal)
+          (add-should-test-package (symbol-package (symbol-tests-symbol symbol-tests)))))
+      (dolist (package should-test-packages)
+        (run-package-tests package)))))
 

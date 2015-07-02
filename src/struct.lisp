@@ -12,6 +12,7 @@
            :symbol-tests-before-each
            :symbol-tests-after-each
            :symbol-tests-around-each
+           :symbol-tests-load-pathname
            :make-symbol-tests
            :add-symbol-tests
            :test-document
@@ -28,7 +29,10 @@
 
 @doc
 "Structure of tests for symbol."
-(defstruct (symbol-tests (:constructor make-symbol-tests (symbol &key tests before after around before-each after-each around-each)))
+(defstruct (symbol-tests (:constructor make-symbol-tests
+                             (symbol &key tests before after around
+                                       before-each after-each around-each
+                                       (load-pathname (or *compile-file-pathname* *load-pathname*)))))
   (symbol nil :type symbol)
   (tests nil :type list)
   (before)
@@ -36,7 +40,8 @@
   (around)
   (before-each)
   (after-each)
-  (around-each))
+  (around-each)
+  (load-pathname nil :type (or null pathname)))
 
 (defun add-symbol-tests (symbol-tests)
   (setq *symbol-tests-list*
