@@ -17,13 +17,17 @@
   :description "Sample asd."
   :perform (test-op (op c)
                     (uiop:symbol-call :cl-annot-prove :run-system-tests c)))
+
 ;; Add two lines from the bottom.
 
-#|
+;; Run test.
 (asdf:test-system :sample)
-
+#|
 ...
 
 ✓ 1 test completed (0ms)
 T
 |#
+
+;; From console.
+;; ros -s cl-annot-prove -e '(or (annot.prove:run-system-tests :elb-log) (uiop:quit -1))'
