@@ -130,7 +130,7 @@
                                               :before-each '(print "before-each")
                                               :after-each '(print "after-each")
                                               :around-each '(let ((b 2)) (call-next-method))))
-      (list "(LET ((C 3))
+      "(LET ((C 3))
   (PROGN
    (PRINT \"before\")
    (LET ((B 2))
@@ -140,7 +140,7 @@
         (ADD A B)
 ;; => 3)
       (PRINT \"after-each\")))
-   (PRINT \"after\")))")
+   (PRINT \"after\")))"
       "can render symbol-tests."
       :test #'equal))
 

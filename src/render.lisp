@@ -135,11 +135,13 @@
 @doc
 "Render #S(SYMBOL-TESTS ...) for documents."
 (defun render-symbol-tests (symbol-tests)
-  (mapcar #'(lambda (test)
-              (let ((around (render-around symbol-tests)))
-                (format nil "~s"
-                        (render-method-chain (replace-test-form test around)
-                                             :before (symbol-tests-before-each symbol-tests)
-                                             :after (symbol-tests-after-each symbol-tests)
-                                             :around around))))
-          (symbol-tests-tests symbol-tests)))
+  (let* ((around (render-around symbol-tests))
+         (replaced-tests (mapcar #'(lambda (test)
+                                    (render-method-chain (replace-test-form test around)
+                                                         :before (symbol-tests-before-each symbol-tests)
+                                                         :after (symbol-tests-after-each symbol-tests)))
+                                 (symbol-tests-tests symbol-tests))))
+    (format nil "~s" (render-method-chain (if (= (length replaced-tests) 1)
+                                              (car replaced-tests)
+                                              `(progn ,@replaced-tests))
+                                          :around around))))

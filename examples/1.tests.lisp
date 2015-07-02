@@ -30,40 +30,39 @@
 
 (render-symbol-tests (car (query-symbol-tests :symbol-name "ADD")))
 #|
-("(LET ((INT1 1))
+"(LET ((INT1 1))
   (PROGN
    (PRINT \"Before tests.\")
    (LET ((INT2 2))
      (PROGN
-      (PRINT \"Before each tests.\")
-      (LET ((INT3 3))
-        (ADD INT1 INT2)
+      (PROGN
+       (PRINT \"Before each tests.\")
+       (LET ((INT3 3))
+         (ADD INT1 INT2)
 ;; => 3)
-      (PRINT \"After each tests.\")))
-   (PRINT \"After tests.\")))"
- "(LET ((INT1 1))
-  (PROGN
-   (PRINT \"Before tests.\")
-   (LET ((INT2 2))
-     (PROGN
-      (PRINT \"Before each tests.\")
-      (LET ((INT4 1))
-        (ADD INT1 INT4)
+       (PRINT \"After each tests.\"))
+      (PROGN
+       (PRINT \"Before each tests.\")
+       (LET ((INT4 1))
+         (ADD INT1 INT4)
 ;; => 2)
-      (PRINT \"After each tests.\")))
-   (PRINT \"After tests.\")))")
+       (PRINT \"After each tests.\"))))
+   (PRINT \"After tests.\")))"
 |#
 
 (run-symbol-tests (car (query-symbol-tests :symbol-name "ADD")))
 #|
 "Before tests." 
+"Before each tests." 
   ✓ 3 is expected to be 3 
 
-"After tests." 
-"Before tests." 
+"After each tests." 
+"Before each tests." 
   ✓ 2 is expected to be 2 
 
+"After each tests." 
 "After tests." 
+"After tests."
 |#
 
 (run-package-tests *package*)

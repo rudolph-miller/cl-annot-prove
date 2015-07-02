@@ -50,11 +50,14 @@
 @doc
 "Run symbol-tests."
 (defun run-symbol-tests (symbol-tests)
-  (let ((tests (symbol-tests-tests symbol-tests)))
-    (dolist (test tests)
-      (eval
-       (render-method-chain test
-                            :around (render-around symbol-tests))))))
+  (let ((rendered-tests (mapcar #'(lambda (test)
+                                    (render-method-chain test
+                                                         :before (symbol-tests-before-each symbol-tests)
+                                                         :after (symbol-tests-after-each symbol-tests)))
+                                (symbol-tests-tests symbol-tests))))
+    (eval
+     (render-method-chain `(progn ,@rendered-tests)
+                          :around (render-around symbol-tests)))))
 
 (defun run-symbol-tests-list (symbol-tests-list)
   (plan (length symbol-tests-list))
