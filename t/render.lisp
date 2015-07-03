@@ -12,9 +12,7 @@
                 :replace-test-form
                 :render-symbol-tests)
   (:import-from :cl-annot-prove.struct
-                :make-symbol-tests
-                :symbol-tests-tests
-                :make-test-document))
+                :make-symbol-tests))
 (in-package :cl-annot-prove-test.render)
 
 (plan nil)

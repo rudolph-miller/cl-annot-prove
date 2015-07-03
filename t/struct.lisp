@@ -71,8 +71,12 @@
         1
         "can register symbol-tests.")))
 
+(defstruct some-struct
+  (too-too-too-long-slot-name1)
+  (too-long-slot-name2))
+
 (subtest "test-document"
-  (let ((test-document (make-test-document :got '(is a 1) :expected 1)))
+  (let ((test-document (make-test-document :got '(is a 1) :expected "1")))
     (is-type test-document
              'test-document
              "can make-test-document.")
@@ -82,11 +86,22 @@
         "can bind got.")
 
     (is (test-document-expected test-document)
-        1
+        "1"
         "can bind expected.")
 
     (is (princ-to-string test-document)
         (format nil "(IS A 1)~%;; => 1")
-        "can print test-document correctly.")))
+        "can print test-document correctly."))
+
+  (let ((test-document
+          (make-test-document :got '(is a b) :expected (format nil "~s"
+                                                               (make-some-struct :too-too-too-long-slot-name1 "sample1"
+                                                                                 :too-long-slot-name2 "sample2")))))
+    (is (princ-to-string test-document)
+        "(IS A B)
+;; => #S(SOME-STRUCT
+;;       :TOO-TOO-TOO-LONG-SLOT-NAME1 \"sample1\"
+;;       :TOO-LONG-SLOT-NAME2 \"sample2\")"
+        "can print multi-line.")))
 
 (finalize)

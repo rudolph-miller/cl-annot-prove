@@ -2,6 +2,9 @@
 (defpackage cl-annot-prove.struct
   (:use :cl
         :annot.doc)
+  (:import-from :ppcre
+                :regex-replace
+                :regex-replace-all)
   (:export :*symbol-tests-list*
            :symbol-tests
            :symbol-tests-symbol
@@ -55,6 +58,11 @@
   (got)
   (expected))
 
+(defun format-expected (expected)
+  (regex-replace-all "\\n"
+                     (regex-replace "^" expected ";; => ")
+                     (format nil "~%;;    ")))
+
 (defmethod print-object ((object test-document) stream)
   (with-slots (got expected) object
-    (format stream "~s~%;; => ~a" got expected)))
+    (format stream "~s~%~a" got (format-expected expected))))

@@ -20,6 +20,7 @@
   :homepage "https://github.com/Rudolph-Miller/cl-annot-prove"
   :depends-on (:cl-syntax
                :cl-syntax-annot
+               :cl-ppcre
                :prove
                :trivial-types
                :cl-fad)
