@@ -19,6 +19,9 @@
 
 (defun call-tests ())
 
+(defmacro stub-progn (&body body)
+  `(progn ,@body))
+
 (defun replace-call-tests (form new)
   (if (listp form)
       (if (equal form '(call-tests))
@@ -30,9 +33,9 @@
 
 (defun render-method-chain (main &key before after around)
   (let ((inner (if (or before after)
-                   `(progn ,@(when before (list before))
-                           ,main
-                           ,@(when after (list after)))
+                   `(stub-progn ,@(when before (list before))
+                      ,main
+                      ,@(when after (list after)))
                    main)))
     (if around
         (replace-call-tests around inner)
@@ -96,7 +99,7 @@
     (labels ((set-result (form formatter)
                (let* ((result (gensym "result"))
                       (setq-form `(setq ,result ,(caddr form))))
-                   (push (cons result (list :got (cadr form) :setq setq-form :formatter formatter)) results)
+                 (push (cons result (list :got (cadr form) :setq setq-form :formatter formatter)) results)
                  setq-form))
              (sub (form)
                (if (proper-list-p form)
@@ -113,38 +116,57 @@
 (defun replace-test-form (test-form around)
   (multiple-value-bind (replaced-form results) (replace-test-with-setq-form test-form)
     (let* ((result-symbols (mapcar #'car results))
-             (result-setq-forms (mapcar #'(lambda (item) (getf (cdr item) :setq)) results))
-             (result-around `(let (,@result-symbols) (call-tests) (list ,@result-symbols)))
-             (result-values (eval-silently
-                             (render-method-chain replaced-form
-                                                  :around (if around
-                                                              (render-method-chain around
-                                                                                   :around result-around)
-                                                              result-around)))))
-        (loop for i from 0
-              for setq-form in result-setq-forms
-              for result = (cdr (elt results i))
-              for result-value = (elt result-values i)
-              for got = (getf result :got)
-              for formatter = (getf result :formatter)
-              for expected = (funcall formatter result-value)
-              do (setq replaced-form
-                       (subst (make-test-document :got got
-                                                  :expected expected)
-                              setq-form
-                              replaced-form)))
-        replaced-form)))
+           (result-setq-forms (mapcar #'(lambda (item) (getf (cdr item) :setq)) results))
+           (result-around `(let (,@result-symbols) (call-tests) (list ,@result-symbols)))
+           (result-values (eval-silently
+                           (render-method-chain replaced-form
+                                                :around (if around
+                                                            (render-method-chain around
+                                                                                 :around result-around)
+                                                            result-around)))))
+      (loop for i from 0
+            for setq-form in result-setq-forms
+            for result = (cdr (elt results i))
+            for result-value = (elt result-values i)
+            for got = (getf result :got)
+            for formatter = (getf result :formatter)
+            for expected = (funcall formatter result-value)
+            do (setq replaced-form
+                     (subst (make-test-document :got got
+                                                :expected expected)
+                            setq-form
+                            replaced-form)))
+      replaced-form)))
+
+(defun replace-stub-progn (form)
+  (let ((toplevel t))
+    (labels ((sub (form)
+               (if (proper-list-p form)
+                   (if (and toplevel
+                            (eql (car form) 'stub-progn)
+                            (or (setq toplevel nil) t))
+                       `(progn ,@(sub (cdr form)))
+                       (mapcan #'(lambda (item)
+                                   (if (and (proper-list-p item)
+                                            (eql (car item) 'stub-progn))
+                                       (sub (cdr item))
+                                       (list (sub item))))
+                               form))
+                   form)))
+      (sub form))))
 
 @doc
 "Render #S(SYMBOL-TESTS ...) for documents."
 (defun render-symbol-tests (symbol-tests)
   (let* ((around (render-around symbol-tests))
          (replaced-tests (mapcar #'(lambda (test)
-                                    (render-method-chain (replace-test-form test around)
-                                                         :before (symbol-tests-before-each symbol-tests)
-                                                         :after (symbol-tests-after-each symbol-tests)))
+                                     (render-method-chain (replace-test-form test around)
+                                                          :before (symbol-tests-before-each symbol-tests)
+                                                          :after (symbol-tests-after-each symbol-tests)))
                                  (symbol-tests-tests symbol-tests))))
-    (format nil "~s" (render-method-chain (if (= (length replaced-tests) 1)
-                                              (car replaced-tests)
-                                              `(progn ,@replaced-tests))
-                                          :around around))))
+    (format nil "~s"
+            (replace-stub-progn
+             (render-method-chain (if (= (length replaced-tests) 1)
+                                      (car replaced-tests)
+                                      `(stub-progn ,@replaced-tests))
+                                  :around around)))))

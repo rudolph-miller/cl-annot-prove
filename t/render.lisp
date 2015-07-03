@@ -4,12 +4,14 @@
         :cl-annot-prove
         :prove)
   (:import-from :cl-annot-prove.render
+                :stub-progn
                 :replace-call-tests
                 :render-method-chain
                 :render-around
                 :expected-formatter
                 :replace-test-with-setq-form
                 :replace-test-form
+                :replace-stub-progn
                 :render-symbol-tests)
   (:import-from :cl-annot-prove.struct
                 :make-symbol-tests))
@@ -32,9 +34,9 @@
     (is (render-method-chain '(= 1 1)
                              :before '(print "before")
                              :after '(print "after"))
-        `(progn (print "before")
-                (= 1 1)
-                (print "after"))
+        `(stub-progn (print "before")
+           (= 1 1)
+           (print "after"))
         "with :before, :after or both.")
 
     (is (render-method-chain '(= 1 a)
@@ -48,9 +50,9 @@
                              :after '(print "after")
                              :around '(let ((a 1)) (call-tests)))
         '(let ((a 1))
-          (progn (print "before")
-                 (= 1 a)
-                 (print "after")))
+          (stub-progn (print "before")
+            (= 1 a)
+            (print "after")))
         "with all keywords.")))
 
 
@@ -119,6 +121,15 @@
       "can replace."
       :test #'equal))
 
+(subtest "replace-stub-progn"
+  (is (replace-stub-progn '(stub-progn (print 1) (print 2)))
+      '(progn (print 1) (print 2))
+      "in the toplevel.")
+
+  (is (replace-stub-progn `(stub-progn (let ((a 1)) (stub-progn (print a) (print 1)))))
+      '(progn (let ((a 1)) (print a) (print 1)))
+      "not in the toplevel."))
+
 (subtest "render-symbol-tests"
   (is (render-symbol-tests (make-symbol-tests 'add
                                               :tests '((let ((a 1)) (is (add a b) c)))
@@ -129,16 +140,14 @@
                                               :after-each '(print "after-each")
                                               :around-each '(let ((b 2)) (call-tests))))
       "(LET ((C 3))
-  (PROGN
-   (PRINT \"before\")
-   (LET ((B 2))
-     (PROGN
-      (PRINT \"before-each\")
-      (LET ((A 1))
-        (ADD A B)
+  (PRINT \"before\")
+  (LET ((B 2))
+    (PRINT \"before-each\")
+    (LET ((A 1))
+      (ADD A B)
 ;; => 3)
-      (PRINT \"after-each\")))
-   (PRINT \"after\")))"
+    (PRINT \"after-each\"))
+  (PRINT \"after\"))"
       "can render symbol-tests."
       :test #'equal))
 

@@ -42,23 +42,19 @@
 (render-symbol-tests (car (query-symbol-tests :symbol-name "ADD")))
 #|
 "(LET ((INT1 1))
-  (PROGN
-   (PRINT \"Before tests.\")
-   (LET ((INT2 2))
-     (PROGN
-      (PROGN
-       (PRINT \"Before each tests.\")
-       (LET ((INT3 3))
-         (ADD INT1 INT2)
+  (PRINT \"Before tests.\")
+  (LET ((INT2 2))
+    (PRINT \"Before each tests.\")
+    (LET ((INT3 3))
+      (ADD INT1 INT2)
 ;; => 3)
-       (PRINT \"After each tests.\"))
-      (PROGN
-       (PRINT \"Before each tests.\")
-       (LET ((INT4 1))
-         (ADD INT1 INT4)
+    (PRINT \"After each tests.\")
+    (PRINT \"Before each tests.\")
+    (LET ((INT4 1))
+      (ADD INT1 INT4)
 ;; => 2)
-       (PRINT \"After each tests.\"))))
-   (PRINT \"After tests.\")))"
+    (PRINT \"After each tests.\"))
+  (PRINT \"After tests.\"))"
 |#
 
 (run-symbol-tests (car (query-symbol-tests :symbol-name "ADD")))
