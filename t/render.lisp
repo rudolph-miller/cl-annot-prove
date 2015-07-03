@@ -4,7 +4,7 @@
         :cl-annot-prove
         :prove)
   (:import-from :cl-annot-prove.render
-                :replace-call-next-method
+                :replace-call-tests
                 :render-method-chain
                 :render-around
                 :expected-formatter
@@ -17,10 +17,10 @@
 
 (plan nil)
 
-(subtest "replace-call-next-method"
-  (is (replace-call-next-method '(let ((a 1)) (call-next-method)) '(= 1 a))
+(subtest "replace-call-tests"
+  (is (replace-call-tests '(let ((a 1)) (call-tests)) '(= 1 a))
       '(let ((a 1)) (= 1 a))
-      "can replace (call-next-method)."
+      "can replace (call-tests)."
       :test #'equal))
 
 (subtest "render-method-chain"
@@ -38,7 +38,7 @@
         "with :before, :after or both.")
 
     (is (render-method-chain '(= 1 a)
-                             :around '(let ((a 1)) (call-next-method)))
+                             :around '(let ((a 1)) (call-tests)))
         '(let ((a 1))
           (= 1 a))
         "with :around.")
@@ -46,7 +46,7 @@
     (is (render-method-chain '(= 1 a)
                              :before '(print "before")
                              :after '(print "after")
-                             :around '(let ((a 1)) (call-next-method)))
+                             :around '(let ((a 1)) (call-tests)))
         '(let ((a 1))
           (progn (print "before")
                  (= 1 a)
@@ -57,13 +57,13 @@
 (subtest "render-around"
   (let ((symbol-tests (make-symbol-tests 'add
                                          :tests '((= (add a b) c))
-                                         :around '(let ((c 3)) (call-next-method))
-                                         :around-each '(let ((a 1) (b 2)) (call-next-method)))))
+                                         :around '(let ((c 3)) (call-tests))
+                                         :around-each '(let ((a 1) (b 2)) (call-tests)))))
     (is (render-around symbol-tests)
         '(let ((c 3))
           (let ((a 1)
                 (b 2))
-            (call-next-method)))
+            (call-tests)))
         "can render around."
         :test #'equal)))
 
@@ -112,7 +112,7 @@
                  "can store :formatter.")))))
 
 (subtest "replace-test-form"
-  (is (princ-to-string (replace-test-form '(let ((a 1)) (is a b)) '(let ((b 1)) (call-next-method))))
+  (is (princ-to-string (replace-test-form '(let ((a 1)) (is a b)) '(let ((b 1)) (call-tests))))
       "(LET ((A 1))
   A
 ;; => 1)"
@@ -124,10 +124,10 @@
                                               :tests '((let ((a 1)) (is (add a b) c)))
                                               :before '(print "before")
                                               :after '(print "after")
-                                              :around '(let ((c 3)) (call-next-method))
+                                              :around '(let ((c 3)) (call-tests))
                                               :before-each '(print "before-each")
                                               :after-each '(print "after-each")
-                                              :around-each '(let ((b 2)) (call-next-method))))
+                                              :around-each '(let ((b 2)) (call-tests))))
       "(LET ((C 3))
   (PROGN
    (PRINT \"before\")

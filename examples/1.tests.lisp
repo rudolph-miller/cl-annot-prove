@@ -24,13 +24,13 @@
 @tests.after
 (print "After tests.")
 @tests.around
-(let ((int1 1)) (call-next-method))
+(let ((int1 1)) (call-tests))
 @tests.before.each
 (print "Before each tests.")
 @tests.after.each
 (print "After each tests.")
 @tests.around.each
-(let ((int2 2)) (call-next-method))
+(let ((int2 2)) (call-tests))
 @tests
 ((let ((int3 3))
    (is (add int1 int2) int3))

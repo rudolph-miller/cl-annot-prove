@@ -10,13 +10,13 @@
 (syntax:use-syntax :annot)
 
 @tests.around
-(let ((a 1)) (call-next-method))
+(let ((a 1)) (call-tests))
 @tests.before
 (print "before")
 @tests.after
 (print "after")
 @tests.around.each
-(let ((b 2)) (call-next-method))
+(let ((b 2)) (call-tests))
 @tests.before.each
 (print "before-each")
 @tests.after.each
@@ -62,7 +62,7 @@
 
 (symbol-tests-subtest "@tests.around"
   (is (symbol-tests-around symbol-tests)
-      '(let ((a 1)) (call-next-method))
+      '(let ((a 1)) (call-tests))
       "can bind around."))
 
 (symbol-tests-subtest "@tests.before.each"
@@ -77,7 +77,7 @@
 
 (symbol-tests-subtest "@tests.around.each"
   (is (symbol-tests-around-each symbol-tests)
-      '(let ((b 2)) (call-next-method))
+      '(let ((b 2)) (call-tests))
       "can bind around-each."))
 
 (finalize)

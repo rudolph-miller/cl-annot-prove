@@ -18,6 +18,7 @@
                 :test-document-got
                 :test-document-expected)
   (:import-from :cl-annot-prove.render
+                :call-tests
                 :render-symbol-tests)
   (:import-from :cl-annot-prove.helper
                 :query-symbol-tests
@@ -55,6 +56,7 @@
            :test-document-expected
 
            ;; render
+           :call-tests
            :render-symbol-tests
 
            ;; helper

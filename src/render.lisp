@@ -5,7 +5,8 @@
         :cl-annot-prove.struct)
   (:import-from :trivial-types
                 :proper-list-p)
-  (:export :replace-call-next-method
+  (:export :call-tests
+           :replace-call-tests
            :render-method-chain
            :render-around
            :expected-formatter
@@ -16,12 +17,14 @@
 
 (syntax:use-syntax :annot)
 
-(defun replace-call-next-method (form new)
+(defun call-tests ())
+
+(defun replace-call-tests (form new)
   (if (listp form)
-      (if (equal form '(cl:call-next-method))
+      (if (equal form '(call-tests))
           new
           (mapcar #'(lambda (item)
-                      (replace-call-next-method item new))
+                      (replace-call-tests item new))
                   form))
       form))
 
@@ -32,11 +35,11 @@
                            ,@(when after (list after)))
                    main)))
     (if around
-        (replace-call-next-method around inner)
+        (replace-call-tests around inner)
         inner)))
 
 (defun render-around (symbol-tests)
-  (render-method-chain (or (symbol-tests-around-each symbol-tests) '(cl:call-next-method))
+  (render-method-chain (or (symbol-tests-around-each symbol-tests) '(call-tests))
                        :before (symbol-tests-before symbol-tests)
                        :after (symbol-tests-after symbol-tests)
                        :around (symbol-tests-around symbol-tests)))
@@ -111,7 +114,7 @@
   (multiple-value-bind (replaced-form results) (replace-test-with-setq-form test-form)
     (let* ((result-symbols (mapcar #'car results))
              (result-setq-forms (mapcar #'(lambda (item) (getf (cdr item) :setq)) results))
-             (result-around `(let (,@result-symbols) (call-next-method) (list ,@result-symbols)))
+             (result-around `(let (,@result-symbols) (call-tests) (list ,@result-symbols)))
              (result-values (eval-silently
                              (render-method-chain replaced-form
                                                   :around (if around

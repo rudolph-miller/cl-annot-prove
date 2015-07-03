@@ -16,10 +16,10 @@
                                          :tests '((is a b))
                                          :before '(print "before")
                                          :after '(print "after")
-                                         :around '(let ((a 1)) (call-next-method))
+                                         :around '(let ((a 1)) (call-tests))
                                          :before-each '(print "before-each")
                                          :after-each '(print "after-each")
-                                         :around-each'(let ((b 1)) (call-next-method))))
+                                         :around-each'(let ((b 1)) (call-tests))))
         (*default-test-function* #'equal))
     (is-type symbol-tests
              'symbol-tests
@@ -38,7 +38,7 @@
         "can bind after.")
 
     (is (symbol-tests-around symbol-tests)
-        '(let ((a 1)) (call-next-method))
+        '(let ((a 1)) (call-tests))
         "can bind around.")
 
     (is (car (symbol-tests-tests symbol-tests))
@@ -54,7 +54,7 @@
         "can bind after-each.")
 
     (is (symbol-tests-around-each symbol-tests)
-        '(let ((b 1)) (call-next-method))
+        '(let ((b 1)) (call-tests))
         "can bind around-each.")))
 
 (subtest "add-symbol-tests"
