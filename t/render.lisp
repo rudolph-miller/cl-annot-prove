@@ -149,6 +149,12 @@
     (PRINT \"after-each\"))
   (PRINT \"after\"))"
       "can render symbol-tests."
-      :test #'equal))
+      :test #'equal)
+
+  (is (render-symbol-tests (make-symbol-tests 'cl-annot-prove:render-symbol-tests
+                                              :tests '((is *package* *package*))))
+      "*PACKAGE*
+;; => #<PACKAGE \"CL-ANNOT-PROVE-TEST.RENDER\">"
+      "can bind *package*."))
 
 (finalize)

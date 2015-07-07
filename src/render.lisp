@@ -163,10 +163,11 @@
                                      (render-method-chain (replace-test-form test around)
                                                           :before (symbol-tests-before-each symbol-tests)
                                                           :after (symbol-tests-after-each symbol-tests)))
-                                 (symbol-tests-tests symbol-tests))))
-    (format nil "~s"
-            (replace-stub-progn
-             (render-method-chain (if (= (length replaced-tests) 1)
-                                      (car replaced-tests)
-                                      `(stub-progn ,@replaced-tests))
-                                  :around around)))))
+                                 (symbol-tests-tests symbol-tests)))
+         (form (replace-stub-progn
+                (render-method-chain (if (= (length replaced-tests) 1)
+                                         (car replaced-tests)
+                                         `(stub-progn ,@replaced-tests))
+                                     :around around)))
+         (*package* (symbol-package (symbol-tests-symbol symbol-tests))))
+    (format nil "~s" form)))
