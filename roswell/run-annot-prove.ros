@@ -1,0 +1,45 @@
+#!/bin/sh
+#|-*- mode:lisp -*-|#
+#|
+exec ros -Q -- $0 "$@"
+|#
+
+(unless (find-package :uiop)
+  (ql:quickload :uiop :silent t))
+
+(ql:quickload '(:prove :cl-annot-prove) :silent t)
+
+(when (uiop:getenv "COVERALLS")
+  (ql:quickload '(:cl-coveralls :split-sequence) :silent t))
+
+(defun main (&rest option-and-test-files)
+  (labels ((run-tests (with-prove test-files)
+             (not
+              (some #'null
+                    (mapcar (lambda (test-file)
+                              (let ((test-file (pathname test-file)))
+                                (unless (or (probe-file test-file)
+                                            (string= (pathname-type test-file) "asd"))
+                                  (error "~S is not an asd file." test-file))
+                                (load test-file)
+                                (let ((system (asdf:find-system (pathname-name test-file))))
+                                  (annot.prove:run-system-tests system)
+                                  (when with-prove
+                                    (prove:run-test-system system)))))
+                            test-files)))))
+    (multiple-value-bind (with-prove test-files)
+        (loop for (k v) on option-and-test-files
+              if (string-equal k "--with-prove")
+                do (return (values (not (string-equal v "nil"))
+                                   (remove-if (lambda (item)
+                                                (or (eq item k) (eq item v)))
+                                              option-and-test-files))))
+      (or #.(if (uiop:getenv "COVERALLS")
+                `(,(intern (string :with-coveralls) :coveralls)
+                  (:exclude
+                   (,(intern (string :split-sequence) :split-sequence)
+                    #\: (or (uiop:getenv "COVERAGE_EXCLUDE") "")
+                    :remove-empty-subseqs t))
+                  (run-tests with-prove test-files))
+                '(run-tests with-prove test-files))
+          (uiop:quit -1)))))
