@@ -36,13 +36,11 @@ exec ros -Q -- $0 "$@"
                                               option-and-test-files)))
               finally (return (values nil option-and-test-files)))
       (or #.(if (uiop:getenv "COVERALLS")
-                `(and
-                 (,(intern (string :with-coveralls) :coveralls)
-                   (:exclude
-                    (,(intern (string :split-sequence) :split-sequence)
-                     #\: (or (uiop:getenv "COVERAGE_EXCLUDE") "")
-                     :remove-empty-subseqs t))
-                   (run-tests with-prove test-files))
-                 (uiop:quit 0))
+                `(,(intern (string :with-coveralls) :coveralls)
+                  (:exclude
+                   (,(intern (string :split-sequence) :split-sequence)
+                    #\: (or (uiop:getenv "COVERAGE_EXCLUDE") "")
+                    :remove-empty-subseqs t))
+                  (run-tests with-prove test-files))
                 '(run-tests with-prove test-files))
           (uiop:quit -1)))))
