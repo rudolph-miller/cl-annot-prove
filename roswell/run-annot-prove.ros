@@ -23,9 +23,10 @@ exec ros -Q -- $0 "$@"
                                   (error "~S is not an asd file." test-file))
                                 (load test-file)
                                 (let ((system (asdf:find-system (pathname-name test-file))))
-                                  (annot.prove:run-system-tests system)
-                                  (when with-prove
-                                    (prove:run-test-system system)))))
+                                  (and (annot.prove:run-system-tests system)
+                                       (if with-prove
+                                           (prove:run-test-system system)
+                                           t)))))
                             test-files)))))
     (multiple-value-bind (with-prove test-files)
         (loop for (k v) on option-and-test-files
