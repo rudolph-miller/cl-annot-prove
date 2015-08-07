@@ -33,7 +33,8 @@ exec ros -Q -- $0 "$@"
                 do (return (values (not (string-equal v "nil"))
                                    (remove-if (lambda (item)
                                                 (or (eq item k) (eq item v)))
-                                              option-and-test-files))))
+                                              option-and-test-files)))
+              finally (return (values nil option-and-test-files)))
       (or #.(if (uiop:getenv "COVERALLS")
                 `(,(intern (string :with-coveralls) :coveralls)
                   (:exclude
