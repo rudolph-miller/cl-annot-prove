@@ -12,7 +12,26 @@ exec ros -Q -- $0 "$@"
 (when (uiop:getenv "COVERALLS")
   (ql:quickload '(:cl-coveralls :split-sequence) :silent t))
 
-(defun main (&rest option-and-test-files)
+(defun version ()
+  (princ (asdf:component-version (asdf:find-system :cl-annot-prove)))
+  (terpri)
+  (uiop:quit -1))
+
+(defun help ()
+  (format t "~&Usage:
+run-annot-prove [OPTIONS] [.asd files...]
+run-annot-prove *.asd
+run-annot-prove -p *.asd
+
+OPTIONS:
+  -h --help           Show this help.
+  -v --version        Show version of cl-annot-prove.
+  -p --with-prove     Run both annot.prove:run-system-tests and prove:run-test-system.
+  -P --without-prove  Run annot.prove:run-system-tests, without prove:run-test-system (default).
+")
+  (uiop:quit -1))
+
+(defun run (option-and-test-files)
   (labels ((run-tests (with-prove test-files)
              (not
               (some #'null
@@ -33,11 +52,11 @@ exec ros -Q -- $0 "$@"
               with test-files
               for item in option-and-test-files
               do (cond
-                   ((or (string-equal item "-p")
-                        (string-equal item "--with-prove"))
+                   ((find item (list "-p" "--with-prove")
+                          :test #'equal)
                     (setq with-prove t))
-                   ((or (string-equal item "-P")
-                        (string-equal item "--without-prove"))
+                   ((find item (list "-P" "--without-prove")
+                          :test #'equal)
                     (setq with-prove nil))
                    (t (push item test-files)))
               finally (return (values with-prove test-files)))
@@ -50,3 +69,16 @@ exec ros -Q -- $0 "$@"
                   (run-tests with-prove test-files))
                 '(run-tests with-prove test-files))
           (uiop:quit -1)))))
+
+(defun main (&rest args)
+  (flet ((find-one-of (items list)
+           (loop for item in items
+                   thereis (find item list
+                                 :test #'equal))))
+    (cond
+      ((or (null args)
+           (find-one-of (list "-h" "--help") args))
+       (help))
+      ((find-one-of (list "-v" "--version") args)
+       (version))
+      (t (run args)))))
