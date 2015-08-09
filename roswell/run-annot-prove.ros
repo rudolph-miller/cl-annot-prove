@@ -29,13 +29,18 @@ exec ros -Q -- $0 "$@"
                                            t)))))
                             test-files)))))
     (multiple-value-bind (with-prove test-files)
-        (loop for (k v) on option-and-test-files
-              if (string-equal k "--with-prove")
-                do (return (values (not (string-equal v "nil"))
-                                   (remove-if (lambda (item)
-                                                (or (eq item k) (eq item v)))
-                                              option-and-test-files)))
-              finally (return (values nil option-and-test-files)))
+        (loop with with-prove
+              with test-files
+              for item in option-and-test-files
+              do (cond
+                   ((or (string-equal item "-p")
+                        (string-equal item "--with-prove"))
+                    (setq with-prove t))
+                   ((or (string-equal item "-P")
+                        (string-equal item "--without-prove"))
+                    (setq with-prove nil))
+                   (t (push item test-files)))
+              finally (return (values with-prove test-files)))
       (or #.(if (uiop:getenv "COVERALLS")
                 `(,(intern (string :with-coveralls) :coveralls)
                   (:exclude
