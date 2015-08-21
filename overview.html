@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>
+  Overview &ndash; CL-ANNOT-PROVE
+</title>
+    <link rel="stylesheet" href="static/style.css"/>
+    
+  <link rel="stylesheet" href="static/highlight.css"/>
+  <script src="static/highlight.js"></script>
+  <style>
+   /* Highlight the current top-level TOC item, and hide the TOC of all other items */
+
+   .toc a[data-node="overview"] {
+       color: #AD3108;
+   }
+
+   .toc ol {
+       display: none;
+   }
+
+   .toc > ol {
+       display: block;
+   }
+
+   .toc li a[data-node="overview"] + ol {
+       display: block;
+   }
+
+   .toc li a[data-node="overview"] + ol li {
+       font-size: 16px;
+       margin: 0 10px;
+   }
+
+   .toc li a[active] + ol li:first-child {
+       margin-top: 5px;
+   }
+  </style>
+
+  </head>
+  <body>
+    
+  <h1 class="doc-title">CL-ANNOT-PROVE » Overview</h1>
+  <article id="article" data-section="overview">
+    <aside>
+      <ol class="toc"><li><a href="overview.html" data-node="overview">Overview</a><ol><li><a href="overview.html#description" data-node="description">Description</a></li><li><a href="overview.html#examples" data-node="examples">Examples</a><ol><li><a href="overview.html#1.-tests" data-node="1.-tests">1. tests</a></li><li><a href="overview.html#2.-query-symbol-tests" data-node="2.-query-symbol-tests">2. query-symbol-tests</a></li><li><a href="overview.html#3.-asdf" data-node="3.-asdf">3. asdf</a></li><li><a href="overview.html#4.-run-system-tests" data-node="4.-run-system-tests">4. run-system-tests</a></li></ol></li><li><a href="overview.html#source" data-node="source">Source</a></li><li><a href="overview.html#author" data-node="author">Author</a></li><li><a href="overview.html#licence" data-node="licence">Licence</a></li></ol></li><li><a href="globals.html" data-node="globals">Globals</a></li><li><a href="functions.html" data-node="functions">Functions</a></li><li><a href="structures.html" data-node="structures">Structures</a></li></ol>
+    </aside>
+    <main class="codex-section">
+      <a href="https://circleci.com/gh/Rudolph-Miller/cl-annot-prove"><img src="https://circleci.com/gh/Rudolph-Miller/cl-annot-prove.svg"/></a><a href="https://coveralls.io/repos/Rudolph-Miller/cl-annot-prove"><img src="https://coveralls.io/repos/Rudolph-Miller/cl-annot-prove/badge.svg"/></a><h1 id="description">Description</h1>
+Annotation Syntax Test Library.
+<h1 id="examples">Examples</h1><h2 id="1.-tests">1. tests</h2><pre><code class="lisp">(in-package :cl-user)
+(defpackage sample
+  (:use :cl
+        :cl-annot-prove
+        :prove))
+(in-package :sample)
+
+;; Have to load systems: cl-syntax and cl-syntax-annot.
+(syntax:use-syntax :annot)
+
+@tests
+((is (add 1 2) 3))
+(defun add (a b)
+  (+ a b))
+
+(render-symbol-tests (car (query-symbol-tests :symbol-name &quot;ADD&quot;)))
+#|
+&quot;(ADD 1 2)
+;; =&gt; 3&quot;
+|#
+
+@tests.before
+(print &quot;Before tests.&quot;)
+@tests.after
+(print &quot;After tests.&quot;)
+@tests.around
+(let ((int1 1)) (call-tests))
+@tests.before.each
+(print &quot;Before each tests.&quot;)
+@tests.after.each
+(print &quot;After each tests.&quot;)
+@tests.around.each
+(let ((int2 2)) (call-tests))
+@tests
+((let ((int3 3))
+   (is (add int1 int2) int3))
+ (let ((int4 1))
+   (is (add int1 int4) int2)))
+(defun add (a b)
+  (+ a b))
+
+(render-symbol-tests (car (query-symbol-tests :symbol-name &quot;ADD&quot;)))
+#|
+&quot;(LET ((INT1 1))
+  (PRINT \&quot;Before tests.\&quot;)
+  (LET ((INT2 2))
+    (PRINT \&quot;Before each tests.\&quot;)
+    (LET ((INT3 3))
+      (ADD INT1 INT2)
+;; =&gt; 3)
+    (PRINT \&quot;After each tests.\&quot;)
+    (PRINT \&quot;Before each tests.\&quot;)
+    (LET ((INT4 1))
+      (ADD INT1 INT4)
+;; =&gt; 2)
+    (PRINT \&quot;After each tests.\&quot;))
+  (PRINT \&quot;After tests.\&quot;))&quot;
+|#
+
+(run-symbol-tests (car (query-symbol-tests :symbol-name &quot;ADD&quot;)))
+#|
+&quot;Before tests.&quot; 
+&quot;Before each tests.&quot; 
+  ✓ 3 is expected to be 3 
+
+&quot;After each tests.&quot; 
+&quot;Before each tests.&quot; 
+  ✓ 2 is expected to be 2 
+
+&quot;After each tests.&quot; 
+&quot;After tests.&quot; 
+&quot;After tests.&quot;
+|#
+
+(run-package-tests *package*)
+#|
+ PACKAGE: #&lt;PACKAGE &quot;SAMPLE&quot;&gt;
+1..1
+
+ SYMBOL: ADD
+
+&quot;Before tests.&quot; 
+    ✓ 3 is expected to be 3 
+
+&quot;After tests.&quot; 
+&quot;Before tests.&quot; 
+    ✓ 2 is expected to be 2 
+
+&quot;After tests.&quot; 
+✓ 1 test completed (0ms)
+T
+|#
+</code></pre><h2 id="2.-query-symbol-tests">2. query-symbol-tests</h2><pre><code class="lisp">(in-package :cl-user)
+(defpackage sample
+  (:use :cl
+        :cl-annot-prove
+        :prove))
+(in-package :sample)
+
+(syntax:use-syntax :annot)
+
+@tests
+((is (add 1 2) 3))
+(defun add (a b)
+  (+ a b))
+
+(query-symbol-tests :symbol 'add)
+;; =&gt; (list #S(SYMBOL-TESTS ...) ...)
+
+(query-symbol-tests :symbol-name &quot;ADD&quot;)
+;; =&gt; (list #S(SYMBOL-TESTS ...) ...)
+
+(query-symbol-tests :symbol-package (symbol-package 'add))
+;; =&gt; (list #S(SYMBOL-TESTS ...) ...)
+
+(query-symbol-tests :symbol-package :sample)
+;; =&gt; (list #S(SYMBOL-TESTS ...) ...)
+
+(query-symbol-tests :symbol-package &quot;SAMPLE&quot;)
+;; =&gt; (list #S(SYMBOL-TESTS ...) ...)
+</code></pre><h2 id="3.-asdf">3. asdf</h2><pre><code class="lisp">(in-package :cl-user)
+(defpackage sample-asd
+  (:use :cl :asdf))
+(in-package :sample-asd)
+
+(defsystem sample
+  :version &quot;0.1&quot;
+  :author &quot;Rudolph Miller&quot;
+  :license &quot;MIT&quot;
+  :depends-on (:cl-syntax
+               :cl-syntax-annot
+               :cl-annot-prove)
+  :components ((:module &quot;src&quot;
+                :serial t
+                :components
+                ((:file &quot;sample&quot;))))
+  :description &quot;Sample asd.&quot;
+  :perform (test-op (op c)
+                    (uiop:symbol-call :cl-annot-prove :run-system-tests c)))
+
+;; Add two lines from the bottom.
+
+;; Run test.
+(asdf:test-system :sample)
+#|
+...
+
+✓ 1 test completed (0ms)
+T
+|#
+
+;; From console.
+;; ros -s cl-annot-prove -e '(or (annot.prove:run-system-tests :elb-log) (uiop:quit -1))'
+</code></pre><h2 id="4.-run-system-tests">4. run-system-tests</h2><pre><code class="lisp">(asdf:load-system :sample)
+
+(annot.prove:run-system-tests :sample)
+#|
+...
+
+✓ 1 test completed (0ms)
+T
+|#
+
+;; or you can use roswell script
+;; $ ros install cl-annot-prove
+;; $ run-annot-prove *.asd
+</code></pre><h1 id="source">Source</h1><a href="https://github.com/Rudolph-Miller/cl-annot-prove">CL-ANNOT-PROVE</a><h1 id="author">Author</h1><b>Rudolph Miller</b><h1 id="licence">Licence</h1>
+MIT
+
+    </main>
+  </article>
+  <footer>
+    <div class="info">
+      Created with <a href="https://github.com/CommonDoc/codex">Codex</a>.
+    </div>
+  </footer>
+  <script>
+   HighlightLisp.highlight_auto();
+  </script>
+
+  </body>
+</html>

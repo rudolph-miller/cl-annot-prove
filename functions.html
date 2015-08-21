@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>
+  Functions &ndash; CL-ANNOT-PROVE
+</title>
+    <link rel="stylesheet" href="static/style.css"/>
+    
+  <link rel="stylesheet" href="static/highlight.css"/>
+  <script src="static/highlight.js"></script>
+  <style>
+   /* Highlight the current top-level TOC item, and hide the TOC of all other items */
+
+   .toc a[data-node="functions"] {
+       color: #AD3108;
+   }
+
+   .toc ol {
+       display: none;
+   }
+
+   .toc > ol {
+       display: block;
+   }
+
+   .toc li a[data-node="functions"] + ol {
+       display: block;
+   }
+
+   .toc li a[data-node="functions"] + ol li {
+       font-size: 16px;
+       margin: 0 10px;
+   }
+
+   .toc li a[active] + ol li:first-child {
+       margin-top: 5px;
+   }
+  </style>
+
+  </head>
+  <body>
+    
+  <h1 class="doc-title">CL-ANNOT-PROVE » Functions</h1>
+  <article id="article" data-section="functions">
+    <aside>
+      <ol class="toc"><li><a href="overview.html" data-node="overview">Overview</a><ol><li><a href="overview.html#description" data-node="description">Description</a></li><li><a href="overview.html#examples" data-node="examples">Examples</a><ol><li><a href="overview.html#1.-tests" data-node="1.-tests">1. tests</a></li><li><a href="overview.html#2.-query-symbol-tests" data-node="2.-query-symbol-tests">2. query-symbol-tests</a></li><li><a href="overview.html#3.-asdf" data-node="3.-asdf">3. asdf</a></li><li><a href="overview.html#4.-run-system-tests" data-node="4.-run-system-tests">4. run-system-tests</a></li></ol></li><li><a href="overview.html#source" data-node="source">Source</a></li><li><a href="overview.html#author" data-node="author">Author</a></li><li><a href="overview.html#licence" data-node="licence">Licence</a></li></ol></li><li><a href="globals.html" data-node="globals">Globals</a></li><li><a href="functions.html" data-node="functions">Functions</a></li><li><a href="structures.html" data-node="structures">Structures</a></li></ol>
+    </aside>
+    <main class="codex-section">
+      <div class="codex-doc-node codex-operator codex-function"><code class="codex-name">query-symbol-tests</code><code class="codex-lambda-list">(&amp;key symbol symbol-name symbol-package (symbol-tests-list *symbol-tests-list*))</code><div class="codex-docstring">Return list of #S(SYMBOL-TESTS ...)s which match the conditions.</div></div><div class="codex-doc-node codex-operator codex-function"><code class="codex-name">render-symbol-tests</code><code class="codex-lambda-list">(symbol-tests)</code><div class="codex-docstring">Render #S(SYMBOL-TESTS ...) for documents.</div></div><div class="codex-doc-node codex-operator codex-function"><code class="codex-name">run-package-tests</code><code class="codex-lambda-list">(package)</code><div class="codex-docstring">Run symbol-tests in the package.</div></div><div class="codex-doc-node codex-operator codex-function"><code class="codex-name">run-symbol-tests</code><code class="codex-lambda-list">(symbol-tests)</code><div class="codex-docstring">Run symbol-tests.</div></div><div class="codex-doc-node codex-operator codex-function"><code class="codex-name">run-system-tests</code><code class="codex-lambda-list">(system-designator &amp;key (reload-system t))</code><div class="codex-docstring">Run symbol-tests in the system.</div></div><div class="codex-doc-node codex-operator codex-function"><code class="codex-name">system-symbol-tests-list</code><code class="codex-lambda-list">(system-designator &amp;key (reload-system t))</code><div class="codex-docstring">Return list of #S(SYMBOL-TESTS ...)s in the system.</div></div>
+    </main>
+  </article>
+  <footer>
+    <div class="info">
+      Created with <a href="https://github.com/CommonDoc/codex">Codex</a>.
+    </div>
+  </footer>
+  <script>
+   HighlightLisp.highlight_auto();
+  </script>
+
+  </body>
+</html>
